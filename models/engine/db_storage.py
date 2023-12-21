@@ -16,13 +16,14 @@ from sqlalchemy.orm import sessionmaker
 
 
 class DBStorage:
+     
     """Represents a database storage engine.
 
     Attributes:
         __engine (sqlalchemy.Engine): The working SQLAlchemy engine.
         __session (sqlalchemy.Session): The working SQLAlchemy session.
     """
-
+    
     __engine = None
     __session = None
 
