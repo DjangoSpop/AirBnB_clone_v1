@@ -129,7 +129,7 @@ class HBNBCommand(cmd.Cmd):
         # Split the arguments into class name and parameters
         args_list = args.split()
         class_name = args_list[0]
-        params = args_list[1:]
+        params = args_list[1:2]
 
         # Create an instance of the specified class
         if class_name in HBNBCommand.classes:
