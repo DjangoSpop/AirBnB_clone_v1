@@ -107,3 +107,61 @@ class test_fileStorage(unittest.TestCase):
         from models.engine.file_storage import FileStorage
         print(type(storage))
         self.assertEqual(type(storage), FileStorage)
+# ... existing code ...
+
+class TestFileStorage(unittest.TestCase):
+    """ Class to test the FileStorage class """
+
+    def setUp(self):
+        """ Set up test environment """
+        del_list = []
+        for key in storage._FileStorage__objects.keys():
+            del_list.append(key)
+        for key in del_list:
+            del storage._FileStorage__objects[key]
+
+    def tearDown(self):
+        """ Remove storage file at end of tests """
+        try:
+            os.remove('file.json')
+        except:
+            pass
+
+    def test_new_object_added(self):
+        """ Test that a new object is correctly added to __objects """
+        new = BaseModel()
+        storage.new(new)
+        self.assertIn('BaseModel.' + new.id, storage.all())
+
+    def test_save_and_reload(self):
+        """ Test saving and reloading of storage dictionary """
+        new = BaseModel()
+        storage.new(new)
+        storage.save()
+        storage.reload()
+        self.assertIn('BaseModel.' + new.id, storage.all())
+
+    def test_reload_from_nonexistent_file(self):
+        """ Test reloading from a nonexistent file """
+        with self.assertRaises(FileNotFoundError):
+            storage.reload()
+
+    def test_reload_from_empty_file(self):
+        """ Test reloading from an empty file """
+        with open('file.json', 'w') as f:
+            pass
+        storage.reload()
+        self.assertEqual(len(storage.all()), 0)
+
+    def test_all_returns_dict(self):
+        """ Test that all() method returns a dictionary """
+        self.assertIsInstance(storage.all(), dict)
+
+    def test_all_returns_correct_dict(self):
+        """ Test that all() method returns the correct dictionary """
+        new = BaseModel()
+        storage.new(new)
+        self.assertEqual(storage.all(), {'BaseModel.' + new.id: new})
+
+if __name__ == '__main__':
+    unittest.main()
