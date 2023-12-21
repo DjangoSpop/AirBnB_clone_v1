@@ -1,229 +1,180 @@
 #!/usr/bin/python3
-""" Module for testing file storage"""
-import unittest
-from models.base_model import BaseModel
-from models import storage
+"""Defines unnittests for models/engine/file_storage.py."""
 import os
+import json
+import pep8
+import unittest
+from datetime import datetime
+from models.base_model import BaseModel
+from models.user import User
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.place import Place
+from models.review import Review
+from models.engine.file_storage import FileStorage
 
-
-@unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-class test_fileStorage(unittest.TestCase):
-    """ Class to test the file storage method """
-
-    def setUp(self):
-        """ Set up test environment """
-        try:
-            os.remove('file.json')
-        except Exception:
-            pass
-        del_list = []
-        for key in storage._FileStorage__objects.keys():
-            del_list.append(key)
-        for key in del_list:
-            del storage._FileStorage__objects[key]
-
-    def tearDown(self):
-        """ Remove storage file at end of tests """
-        try:
-            os.remove('file.json')
-        except Exception:
-            pass
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_obj_list_empty(self):
-        """ __objects is initially empty """
-        self.assertEqual(len(storage.all()), 0)
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_new(self):
-        """ New object is correctly added to __objects """
-        temp = BaseModel()
-        for obj in storage.all().values():
-            temp = obj
-            self.assertTrue(temp is obj)
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_all(self):
-        """ __objects is properly returned """
-        new = BaseModel()
-        temp = storage.all()
-        self.assertIsInstance(temp, dict)
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_base_model_instantiation(self):
-        """ File is not created on BaseModel save """
-        new = BaseModel()
-        self.assertFalse(os.path.exists('file.json'))
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_empty(self):
-        """ Data is saved to file """
-        new = BaseModel()
-        thing = new.to_dict()
-        new.save()
-        new2 = BaseModel(**thing)
-        self.assertNotEqual(os.path.getsize('file.json'), 0)
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_save(self):
-        """ FileStorage save method """
-        new = BaseModel()
-        storage.save()
-        self.assertTrue(os.path.exists('file.json'))
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_reload(self):
-        """ Storage file is successfully loaded to __objects """
-        new = BaseModel()
-        storage.save()
-        storage.reload()
-        for obj in storage.all().values():
-            self.assertEqual(new.to_dict()['id'], obj.to_dict()['id'])
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_reload_empty(self):
-        """ Load from an empty file """
-        with open('file.json', 'w') as f:
-            pass
-        with self.assertRaises(ValueError):
-            storage.reload()
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_reload_from_nonexistent(self):
-        """ Nothing happens if file does not exist """
-        self.assertEqual(storage.reload(), None)
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_base_model_save(self):
-        """ BaseModel save method calls storage save """
-        new = BaseModel()
-        new.save()
-        self.assertTrue(os.path.exists('file.json'))
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_type_path(self):
-        """ Confirm __file_path is string """
-        self.assertEqual(type(storage._FileStorage__file_path), str)
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_type_objects(self):
-        """ Confirm __objects is a dict """
-        self.assertEqual(type(storage.all()), dict)
-
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', 'Another storage')
-    def test_storage_var_created(self):
-        """ FileStorage object storage created """
-        from models.engine.file_storage import FileStorage
-        print(type(storage))
-        self.assertEqual(type(storage), FileStorage)
-    def test_create_state():
-        # Connect to the MySQL database
-        db = MySQLdb.connect(host="localhost", user="hbnb_test", passwd="hbnb_test_pwd", db="hbnb_test_db")
-
-        # Get the number of current records in the "states" table
-        cursor = db.cursor()
-        cursor.execute("SELECT COUNT(*) FROM states")
-        initial_count = cursor.fetchone()[0]
-
-        # Create a new instance of State and save it to the MySQL database
-        state = State(name="California")
-        state.save()
-
-        # Get the number of current records in the "states" table
-        cursor.execute("SELECT COUNT(*) FROM states")
-        final_count = cursor.fetchone()[0]
-
-        # Compare the initial count to the final count to make sure the new
-        # record was successfully added to the database
-        assert final_count == initial_count + 1
-
-        # Delete the new instance of State from the MySQL database
-        state.delete()
-
-        # Get the number of current records in the "states" table
-        cursor.execute("SELECT COUNT(*) FROM states")
-        final_count = cursor.fetchone()[0]
-
-        # Compare the initial count to the final count to make sure the new
-        # record was successfully deleted from the database
-        assert final_count == initial_count
-        db.close()# ... existing code ...
 
 class TestFileStorage(unittest.TestCase):
-    """ Class to test the FileStorage class """
+    """Unittests for testing the FileStorage class."""
 
-    def test_new_object_added(self):
-        """ Test that a new object is correctly added to __objects """
-        storage = FileStorage()
-        new = BaseModel()
-        storage.new(new)
-        self.assertIn('BaseModel.' + new.id, storage.all())
+    @classmethod
+    def setUpClass(cls):
+        """FileStorage testing setup.
 
-    def test_save_file_created(self):
-        """ Test that the save method creates the storage file """
-        storage = FileStorage()
-        new = BaseModel()
-        storage.new(new)
-        storage.save()
-        self.assertTrue(os.path.exists(FileStorage.__file_path))
-
-    def test_reload_file_loaded(self):
-        """ Test that the reload method successfully loads the storage file """
-        storage = FileStorage()
-        new = BaseModel()
-        storage.new(new)
-        storage.save()
-        storage.reload()
-        self.assertIn('BaseModel.' + new.id, storage.all())
-
-    def test_reload_empty_file(self):
-        """ Test that the reload method handles an empty file """
-        storage = FileStorage()
-        with open(FileStorage.__file_path, 'w') as f:
+        Temporarily renames any existing file.json.
+        Resets FileStorage objects dictionary.
+        Creates instances of all class types for testing.
+        """
+        try:
+            os.rename("file.json", "tmp")
+        except IOError:
             pass
-        with self.assertRaises(ValueError):
-            storage.reload()
+        FileStorage._FileStorage__objects = {}
+        cls.storage = FileStorage()
+        cls.base = BaseModel()
+        key = "{}.{}".format(type(cls.base).__name__, cls.base.id)
+        FileStorage._FileStorage__objects[key] = cls.base
+        cls.user = User()
+        key = "{}.{}".format(type(cls.user).__name__, cls.user.id)
+        FileStorage._FileStorage__objects[key] = cls.user
+        cls.state = State()
+        key = "{}.{}".format(type(cls.state).__name__, cls.state.id)
+        FileStorage._FileStorage__objects[key] = cls.state
+        cls.place = Place()
+        key = "{}.{}".format(type(cls.place).__name__, cls.place.id)
+        FileStorage._FileStorage__objects[key] = cls.place
+        cls.city = City()
+        key = "{}.{}".format(type(cls.city).__name__, cls.city.id)
+        FileStorage._FileStorage__objects[key] = cls.city
+        cls.amenity = Amenity()
+        key = "{}.{}".format(type(cls.amenity).__name__, cls.amenity.id)
+        FileStorage._FileStorage__objects[key] = cls.amenity
+        cls.review = Review()
+        key = "{}.{}".format(type(cls.review).__name__, cls.review.id)
+        FileStorage._FileStorage__objects[key] = cls.review
 
-    def test_reload_nonexistent_file(self):
-        """ Test that the reload method handles a nonexistent file """
-        storage = FileStorage()
-        os.remove(FileStorage.__file_path)
-        self.assertIsNone(storage.reload())
+    @classmethod
+    def tearDownClass(cls):
+        """FileStorage testing teardown.
 
-    def test_create_state(self):
-        """ Test creating and deleting a State object in the database """
-        # Connect to the MySQL database
-        db = MySQLdb.connect(host="localhost", user="hbnb_test", passwd="hbnb_test_pwd", db="hbnb_test_db")
+        Restore original file.json.
+        Delete all test class instances.
+        """
+        try:
+            os.remove("file.json")
+        except IOError:
+            pass
+        try:
+            os.rename("tmp", "file.json")
+        except IOError:
+            pass
+        del cls.storage
+        del cls.base
+        del cls.user
+        del cls.state
+        del cls.place
+        del cls.city
+        del cls.amenity
+        del cls.review
 
-        # Get the number of current records in the "states" table
-        cursor = db.cursor()
-        cursor.execute("SELECT COUNT(*) FROM states")
-        initial_count = cursor.fetchone()[0]
+    def test_pep8_FileStorage(self):
+        """Test pep8 styling."""
+        style = pep8.StyleGuide(quiet=True)
+        p = style.check_files(['models/engine/file_storage.py'])
+        self.assertEqual(p.total_errors, 0, "fix pep8")
 
-        # Create a new instance of State and save it to the MySQL database
-        state = State(name="California")
-        state.save()
+    def test_docstrings(self):
+        """Check for docstrings."""
+        self.assertIsNotNone(FileStorage.__doc__)
+        self.assertIsNotNone(FileStorage.all.__doc__)
+        self.assertIsNotNone(FileStorage.new.__doc__)
+        self.assertIsNotNone(FileStorage.reload.__doc__)
+        self.assertIsNotNone(FileStorage.delete.__doc__)
 
-        # Get the number of current records in the "states" table
-        cursor.execute("SELECT COUNT(*) FROM states")
-        final_count = cursor.fetchone()[0]
+    def test_attributes(self):
+        """Check for attributes."""
+        self.assertEqual(str, type(FileStorage._FileStorage__file_path))
+        self.assertEqual(dict, type(FileStorage._FileStorage__objects))
 
-        # Compare the initial count to the final count to make sure the new
-        # record was successfully added to the database
-        self.assertEqual(final_count, initial_count + 1)
+    def test_methods(self):
+        """Check for methods."""
+        self.assertTrue(hasattr(FileStorage, "all"))
+        self.assertTrue(hasattr(FileStorage, "new"))
+        self.assertTrue(hasattr(FileStorage, "reload"))
+        self.assertTrue(hasattr(FileStorage, "delete"))
 
-        # Delete the new instance of State from the MySQL database
-        state.delete()
+    def test_init(self):
+        """Test initialization."""
+        self.assertTrue(isinstance(self.storage, FileStorage))
 
-        # Get the number of current records in the "states" table
-        cursor.execute("SELECT COUNT(*) FROM states")
-        final_count = cursor.fetchone()[0]
+    def test_all(self):
+        """Test default all method."""
+        obj = self.storage.all()
+        self.assertEqual(type(obj), dict)
+        self.assertIs(obj, FileStorage._FileStorage__objects)
+        self.assertEqual(len(obj), 7)
 
-        # Compare the initial count to the final count to make sure the new
-        # record was successfully deleted from the database
-        self.assertEqual(final_count, initial_count)
+    def test_all_cls(self):
+        """Test all method with specified cls."""
+        obj = self.storage.all(BaseModel)
+        self.assertEqual(type(obj), dict)
+        self.assertEqual(len(obj), 1)
+        self.assertEqual(self.base, list(obj.values())[0])
 
-        # Close the database connection
-        db.close()
+    def test_new(self):
+        """Test new method."""
+        bm = BaseModel()
+        self.storage.new(bm)
+        store = FileStorage._FileStorage__objects
+        self.assertIn("BaseModel." + bm.id, store.keys())
+        self.assertIn(self.base, store.values())
 
-# ... remaining code ...
+    def test_save(self):
+        """Test save method."""
+        self.storage.save()
+        with open("file.json", "r", encoding="utf-8") as f:
+            save_text = f.read()
+            self.assertIn("BaseModel." + self.base.id, save_text)
+            self.assertIn("User." + self.user.id, save_text)
+            self.assertIn("State." + self.state.id, save_text)
+            self.assertIn("Place." + self.place.id, save_text)
+            self.assertIn("City." + self.city.id, save_text)
+            self.assertIn("Amenity." + self.amenity.id, save_text)
+            self.assertIn("Review." + self.review.id, save_text)
+
+    def test_reload(self):
+        """Test reload method."""
+        bm = BaseModel()
+        with open("file.json", "w", encoding="utf-8") as f:
+            key = "{}.{}".format(type(bm).__name__, bm.id)
+            json.dump({key: bm.to_dict()}, f)
+        self.storage.reload()
+        store = FileStorage._FileStorage__objects
+        self.assertIn("BaseModel." + bm.id, store)
+
+    def test_reload_no_file(self):
+        """Test reload method with no existing file.json."""
+        try:
+            self.storage.reload()
+        except Exception:
+            self.fail
+
+    def test_delete(self):
+        """Test delete method."""
+        bm = BaseModel()
+        key = "{}.{}".format(type(bm).__name__, bm.id)
+        FileStorage._FileStorage__objects[key] = bm
+        self.storage.delete(bm)
+        self.assertNotIn(bm, FileStorage._FileStorage__objects)
+
+    def test_delete_nonexistant(self):
+        """Test delete method with a nonexistent object."""
+        try:
+            self.storage.delete(BaseModel())
+        except Exception:
+            self.fail
+
+
+if __name__ == "__main__":
+    unittest.main()
