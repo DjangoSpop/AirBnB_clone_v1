@@ -107,3 +107,114 @@ class test_fileStorage(unittest.TestCase):
         from models.engine.file_storage import FileStorage
         print(type(storage))
         self.assertEqual(type(storage), FileStorage)
+    def test_create_state():
+        # Connect to the MySQL database
+        db = MySQLdb.connect(host="localhost", user="hbnb_test", passwd="hbnb_test_pwd", db="hbnb_test_db")
+
+        # Get the number of current records in the "states" table
+        cursor = db.cursor()
+        cursor.execute("SELECT COUNT(*) FROM states")
+        initial_count = cursor.fetchone()[0]
+
+        # Create a new instance of State and save it to the MySQL database
+        state = State(name="California")
+        state.save()
+
+        # Get the number of current records in the "states" table
+        cursor.execute("SELECT COUNT(*) FROM states")
+        final_count = cursor.fetchone()[0]
+
+        # Compare the initial count to the final count to make sure the new
+        # record was successfully added to the database
+        assert final_count == initial_count + 1
+
+        # Delete the new instance of State from the MySQL database
+        state.delete()
+
+        # Get the number of current records in the "states" table
+        cursor.execute("SELECT COUNT(*) FROM states")
+        final_count = cursor.fetchone()[0]
+
+        # Compare the initial count to the final count to make sure the new
+        # record was successfully deleted from the database
+        assert final_count == initial_count
+        db.close()# ... existing code ...
+
+class TestFileStorage(unittest.TestCase):
+    """ Class to test the FileStorage class """
+
+    def test_new_object_added(self):
+        """ Test that a new object is correctly added to __objects """
+        storage = FileStorage()
+        new = BaseModel()
+        storage.new(new)
+        self.assertIn('BaseModel.' + new.id, storage.all())
+
+    def test_save_file_created(self):
+        """ Test that the save method creates the storage file """
+        storage = FileStorage()
+        new = BaseModel()
+        storage.new(new)
+        storage.save()
+        self.assertTrue(os.path.exists(FileStorage.__file_path))
+
+    def test_reload_file_loaded(self):
+        """ Test that the reload method successfully loads the storage file """
+        storage = FileStorage()
+        new = BaseModel()
+        storage.new(new)
+        storage.save()
+        storage.reload()
+        self.assertIn('BaseModel.' + new.id, storage.all())
+
+    def test_reload_empty_file(self):
+        """ Test that the reload method handles an empty file """
+        storage = FileStorage()
+        with open(FileStorage.__file_path, 'w') as f:
+            pass
+        with self.assertRaises(ValueError):
+            storage.reload()
+
+    def test_reload_nonexistent_file(self):
+        """ Test that the reload method handles a nonexistent file """
+        storage = FileStorage()
+        os.remove(FileStorage.__file_path)
+        self.assertIsNone(storage.reload())
+
+    def test_create_state(self):
+        """ Test creating and deleting a State object in the database """
+        # Connect to the MySQL database
+        db = MySQLdb.connect(host="localhost", user="hbnb_test", passwd="hbnb_test_pwd", db="hbnb_test_db")
+
+        # Get the number of current records in the "states" table
+        cursor = db.cursor()
+        cursor.execute("SELECT COUNT(*) FROM states")
+        initial_count = cursor.fetchone()[0]
+
+        # Create a new instance of State and save it to the MySQL database
+        state = State(name="California")
+        state.save()
+
+        # Get the number of current records in the "states" table
+        cursor.execute("SELECT COUNT(*) FROM states")
+        final_count = cursor.fetchone()[0]
+
+        # Compare the initial count to the final count to make sure the new
+        # record was successfully added to the database
+        self.assertEqual(final_count, initial_count + 1)
+
+        # Delete the new instance of State from the MySQL database
+        state.delete()
+
+        # Get the number of current records in the "states" table
+        cursor.execute("SELECT COUNT(*) FROM states")
+        final_count = cursor.fetchone()[0]
+
+        # Compare the initial count to the final count to make sure the new
+        # record was successfully deleted from the database
+        self.assertEqual(final_count, initial_count)
+
+        # Close the database connection
+        db.close()
+
+# ... remaining code ...
