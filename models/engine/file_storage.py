@@ -2,6 +2,8 @@
 """This module defines a class to manage file storage for hbnb clone"""
 import json
 
+from models import amenity
+
 
     
 class FileStorage:
@@ -46,7 +48,7 @@ class FileStorage:
         classes = {
                     'BaseModel': BaseModel, 'User': User, 'Place': Place,
                     'State': State, 'City': City, 'Amenity': Amenity,
-                    'Review': Review
+                    'Review': Review 
                   }
         try:
             temp = {}
@@ -63,4 +65,26 @@ class FileStorage:
             key = obj.__class__.__name__ + '.' + obj.id
             if key in FileStorage.__objects:
                 del FileStorage.__objects[key]
+
+    def amenities(self):
+        """Getter attribute for amenities"""
+        amenity_instances = []
+        for obj in self.all().values():
+            if isinstance(obj, amenity) and obj.id in obj.place_ids:
+                amenity_instances.append(obj)
+        return amenity_instances
+
+    @property
+    def amenities(self):
+        """Setter attribute for amenities"""
+        return self.__amenities
+
+    @amenities.setter
+    def amenities(self, amenity):
+        """Setter attribute for amenities"""
+        if isinstance(amenity, amenity.Amenity):
+            amenity.place_ids.append(self.id)
+        else:
+            pass
+                
     
