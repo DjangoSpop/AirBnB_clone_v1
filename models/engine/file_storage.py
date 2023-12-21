@@ -8,15 +8,36 @@ class FileStorage:
     __file_path = 'file.json'
     __objects = {}
 
-    def all(self, cls=None):
-        """Returns a dictionary of models currently in storage"""
-        filtered_by_class = {}
-        if cls:
-            for key, value in FileStorage.__objects.items():
-                if value.__class__ == cls:
-                    filtered_by_class[key] = value
-            return filtered_by_class
-        return FileStorage.__objects
+    @property
+    def amenities(self):
+        """Getter attribute for amenities"""
+        from models.amenity import Amenity
+        amenity_instances = []
+        for obj in self.all(Amenity).values():
+            if obj.id in self.amenity_ids:
+                amenity_instances.append(obj)
+        return amenity_instances
+
+    amenity_ids = []
+
+    @property
+    def amenities(self):
+        """Getter attribute for amenities"""
+        from models.amenity import Amenity
+        amenity_instances = []
+        for obj in self.all(Amenity).values():
+            if obj.id in self.amenity_ids:
+                amenity_instances.append(obj)
+        return amenity_instances
+
+    @amenities.setter
+    def amenities(self, amenity):
+        """Setter attribute for amenities"""
+        from models.amenity import Amenity
+        if isinstance(amenity, Amenity):
+            self.amenity_ids.append(amenity.id)
+
+
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
@@ -64,3 +85,7 @@ class FileStorage:
     def close(self):
         """ Deserialize JSON file to objects before leaving """
         self.reload()
+
+
+
+        
