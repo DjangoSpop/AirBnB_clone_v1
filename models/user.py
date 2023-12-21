@@ -4,7 +4,7 @@ from models.base_model import BaseModel
 from models.base_model import Base
 from sqlalchemy import Column, String
 
-class User(BaseModel):
+class User(BaseModel, Base):
     """This class defines a user by various attributes"""
     email = ''
     password = ''
@@ -15,4 +15,8 @@ class User(BaseModel):
     password = Column(String(128), nullable=False)
     first_name = Column(String(128), nullable=True)
     last_name = Column(String(128), nullable=True)
+
+    reviews = relationship('Review', cascade='all, delete', backref='user')
+    places = relationship('Place', cascade='all, delete', backref='user')
+    
     

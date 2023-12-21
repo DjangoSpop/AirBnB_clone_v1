@@ -5,7 +5,7 @@ from models.base_model import Base
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 
-class State(BaseModel):
+class State(BaseModel, Base):
     """ State class """
     name = ""
     __tablename__ = 'states'

@@ -9,9 +9,36 @@ class FileStorage:
     __file_path = 'file.json'
     __objects = {}
 
-    def all(self):
-        """Returns a dictionary of models currently in storage"""
-        return FileStorage.__objects
+    @property
+    def amenities(self):
+        """Getter attribute for amenities"""
+        from models.amenity import Amenity
+        amenity_instances = []
+        for obj in self.all(Amenity).values():
+            if obj.id in self.amenity_ids:
+                amenity_instances.append(obj)
+        return amenity_instances
+
+    amenity_ids = []
+
+    @property
+    def amenities(self):
+        """Getter attribute for amenities"""
+        from models.amenity import Amenity
+        amenity_instances = []
+        for obj in self.all(Amenity).values():
+            if obj.id in self.amenity_ids:
+                amenity_instances.append(obj)
+        return amenity_instances
+
+    @amenities.setter
+    def amenities(self, amenity):
+        """Setter attribute for amenities"""
+        from models.amenity import Amenity
+        if isinstance(amenity, Amenity):
+            self.amenity_ids.append(amenity.id)
+
+
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
@@ -38,16 +65,16 @@ class FileStorage:
 
 
         classes = {
-                    'BaseModel': BaseModel, 'User': User, 'Place': Place,
-                    'State': State, 'City': City, 'Amenity': Amenity,
-                    'Review': Review
-                  }
+            'BaseModel': BaseModel, 'User': User, 'Place': Place,
+            'State': State, 'City': City, 'Amenity': Amenity,
+            'Review': Review
+        }
         try:
             temp = {}
             with open(FileStorage.__file_path, 'r') as f:
                 temp = json.load(f)
                 for key, val in temp.items():
-                        self.all()[key] = classes[val['__class__']](**val)
+                    self.all()[key] = classes[val['__class__']](**val)
         except FileNotFoundError:
             pass
            
