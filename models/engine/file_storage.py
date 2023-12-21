@@ -2,10 +2,7 @@
 """This module defines a class to manage file storage for hbnb clone"""
 import json
 
-from models import amenity
 
-
-    
 class FileStorage:
     """This class manages storage of hbnb models in JSON format"""
     __file_path = 'file.json'
@@ -13,14 +10,13 @@ class FileStorage:
 
     def all(self, cls=None):
         """Returns a dictionary of models currently in storage"""
-        if cls is None:
-            return FileStorage.__objects
-        else:
-            filtered_objects = {}
-            for key, val in FileStorage.__objects.items():
-                if val.__class__.__name__ == cls.__name__:
-                    filtered_objects[key] = val
-            return filtered_objects
+        filtered_by_class = {}
+        if cls:
+            for key, value in FileStorage.__objects.items():
+                if value.__class__ == cls:
+                    filtered_by_class[key] = value
+            return filtered_by_class
+        return FileStorage.__objects
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
@@ -46,45 +42,25 @@ class FileStorage:
         from models.review import Review
 
         classes = {
-                    'BaseModel': BaseModel, 'User': User, 'Place': Place,
-                    'State': State, 'City': City, 'Amenity': Amenity,
-                    'Review': Review 
-                  }
+            'BaseModel': BaseModel, 'User': User, 'Place': Place,
+            'State': State, 'City': City, 'Amenity': Amenity,
+            'Review': Review
+        }
         try:
             temp = {}
             with open(FileStorage.__file_path, 'r') as f:
                 temp = json.load(f)
                 for key, val in temp.items():
-                        self.all()[key] = classes[val['__class__']](**val)
+                    self.all()[key] = classes[val['__class__']](**val)
         except FileNotFoundError:
             pass
 
     def delete(self, obj=None):
-        """Deletes obj from __objects if it's inside"""
-        if obj is not None:
-            key = obj.__class__.__name__ + '.' + obj.id
-            if key in FileStorage.__objects:
-                del FileStorage.__objects[key]
+        ''' delete obj from __objects if it is inside '''
+        if obj:
+            key = '{}.{}'.format(type(obj).__name__, obj.id)
+            del FileStorage.__objects[key]
 
-    def amenities(self):
-        """Getter attribute for amenities"""
-        amenity_instances = []
-        for obj in self.all().values():
-            if isinstance(obj, amenity) and obj.id in obj.place_ids:
-                amenity_instances.append(obj)
-        return amenity_instances
-
-    @property
-    def amenities(self):
-        """Setter attribute for amenities"""
-        return self.__amenities
-
-    @amenities.setter
-    def amenities(self, amenity):
-        """Setter attribute for amenities"""
-        if isinstance(amenity, amenity.Amenity):
-            amenity.place_ids.append(self.id)
-        else:
-            pass
-                
-    
+    def close(self):
+        """ Deserialize JSON file to objects before leaving """
+        self.reload()
