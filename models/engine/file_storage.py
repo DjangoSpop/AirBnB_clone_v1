@@ -1,6 +1,16 @@
 #!/usr/bin/python3
-"""This module defines a class to manage file storage for hbnb clone"""
+
+"""
+This module defines a class to manage file storage for hbnb clone
+"""
 import json
+from models.base_model import BaseModel
+from models.user import User
+from models.city import City
+from models.place import Place
+from models.state import State
+from models.review import Review
+from models.amenity import Amenity
 
 
 class FileStorage:
@@ -8,36 +18,13 @@ class FileStorage:
     __file_path = 'file.json'
     __objects = {}
 
-    @property
-    def amenities(self):
-        """Getter attribute for amenities"""
-        from models.amenity import Amenity
-        amenity_instances = []
-        for obj in self.all(Amenity).values():
-            if obj.id in self.amenity_ids:
-                amenity_instances.append(obj)
-        return amenity_instances
-
-    amenity_ids = []
-
-    @property
-    def amenities(self):
-        """Getter attribute for amenities"""
-        from models.amenity import Amenity
-        amenity_instances = []
-        for obj in self.all(Amenity).values():
-            if obj.id in self.amenity_ids:
-                amenity_instances.append(obj)
-        return amenity_instances
-
-    @amenities.setter
-    def amenities(self, amenity):
-        """Setter attribute for amenities"""
-        from models.amenity import Amenity
-        if isinstance(amenity, Amenity):
-            self.amenity_ids.append(amenity.id)
-
-
+    def all(self, cls=None):
+        """Returns a dictionary of models currently in storage"""
+        if cls is not None:
+            if type(cls) == str:
+                cls = eval(cls)
+            return {k: v for k, v in self.__objects.items() if type(v) == cls}
+        return self.__objects
 
     def new(self, obj):
         """Adds new object to storage dictionary"""
@@ -52,20 +39,18 @@ class FileStorage:
                 temp[key] = val.to_dict()
             json.dump(temp, f)
 
+    def delete(self, obj=None):
+        """Deletes obj from '__objects'"""
+        if obj is not None:
+            key = obj.to_dict()['__class__'] + '.' + obj.id
+            self.all().pop(key, None)
+
     def reload(self):
         """Loads storage dictionary from file"""
-        from models.base_model import BaseModel
-        from models.user import User
-        from models.place import Place
-        from models.state import State
-        from models.city import City
-        from models.amenity import Amenity
-        from models.review import Review
-
         classes = {
-            'BaseModel': BaseModel, 'User': User, 'Place': Place,
-            'State': State, 'City': City, 'Amenity': Amenity,
-            'Review': Review
+            'BaseModel': BaseModel,
+            'User': User, 'Place': Place, 'State': State,
+            'City': City, 'Amenity': Amenity, 'Review': Review
         }
         try:
             temp = {}
@@ -76,16 +61,8 @@ class FileStorage:
         except FileNotFoundError:
             pass
 
-    def delete(self, obj=None):
-        ''' delete obj from __objects if it is inside '''
-        if obj:
-            key = '{}.{}'.format(type(obj).__name__, obj.id)
-            del FileStorage.__objects[key]
-
     def close(self):
-        """ Deserialize JSON file to objects before leaving """
+        """
+        Calls reload() method
+        """
         self.reload()
-
-
-
-        
